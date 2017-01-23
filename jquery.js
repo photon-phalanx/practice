@@ -13,15 +13,22 @@
  *
  * Date: Wed Mar 21 12:46:34 2012 -0700
  */
+
+//总是要来的，烫手的大山芋
+//不来分析源码怎么变强！开始吧……
+//一开始就用了自调用函数，防止干扰和破坏，这里他要传2个参数，一个window一个undefined
+//传入window是为了减少作用域链的查询时间，而这个undefined没有显式的传入，其目的是为了防止undefined被改写，同时也缩短时间
 (function( window, undefined ) {
 
 // Use the correct document accordingly with window argument (sandbox)
 var document = window.document,
 	navigator = window.navigator,
 	location = window.location;
+//	模块1，构造，jQuery是构造函数，根据不同的传参，逻辑也会不同，这又是一个自执行函数
 var jQuery = (function() {
 
 // Define a local copy of jQuery
+// 内部又有一个jquery
 var jQuery = function( selector, context ) {
 		// The jQuery object is actually just the init constructor 'enhanced'
 		return new jQuery.fn.init( selector, context, rootjQuery );
@@ -94,15 +101,18 @@ var jQuery = function( selector, context ) {
 	// [[Class]] -> type pairs
 	class2type = {};
 
+	//前面的变量回头再说吧……太多了……
+	//重写了prototype,并且同样的赋值给了fn一份
 jQuery.fn = jQuery.prototype = {
 	constructor: jQuery,
 	init: function( selector, context, rootjQuery ) {
 		var match, elem, ret, doc;
-
+		//如果啥都没传，或者穿进来的相当于null/false之类的东西，则返回this，这里的this就是jQuery这个对象
 		// Handle $(""), $(null), or $(undefined)
 		if ( !selector ) {
 			return this;
 		}
+		//如果他是一个原生的元素的话，把他包装成为jquery对象
 
 		// Handle $(DOMElement)
 		if ( selector.nodeType ) {
@@ -111,6 +121,8 @@ jQuery.fn = jQuery.prototype = {
 			return this;
 		}
 
+		//selector是body的话，那就拿到整个body并包装成jquery对象
+		//根据下面这行英文表示，这是查找的优化，只会有一个body所以手动设置
 		// The body element only exists once, optimize finding it
 		if ( selector === "body" && !context && document.body ) {
 			this.context = document;
@@ -123,24 +135,41 @@ jQuery.fn = jQuery.prototype = {
 		// Handle HTML strings
 		if ( typeof selector === "string" ) {
 			// Are we dealing with HTML string or an ID?
+			//是string的话，又有多种可能，可能是一个html标签，也可能是选择器
+			//这里考虑如果是标签的话，也就是<>包裹的并且里面有内容的
+			//这里只考虑简单标签，跳过正则的搜索，假设这就是一个正确的标签了
 			if ( selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 ) {
 				// Assume that strings that start and end with <> are HTML and skip the regex check
 				match = [ null, selector, null ];
 
 			} else {
+				//嘿油，这就有点麻烦了，把这个正则先抄过来 /^(?:[^#<]*(<[\w\W]+>)[^>]*$|#([\w\-]*)$)/
 				match = quickExpr.exec( selector );
+				//这会返回一个长度为3的数组，第一项是整个字符串，后面2项是捕获，如果没有匹配，返回null
+				//第一种：先过滤掉不是#和<打头的多个东西，直到出现<>里的东西，将他放在第一个捕获，然后再把不是>的多个给过滤掉。
+				// 这样写是为了使得得到的第二个数组是纯的东西，比如abc<div>abc,会过滤成<div>
+				//但是对于abc<div>>>abc这样的东西，只能过滤成<div>>
+				//第二种，捕获#开始到结尾全是字母数字下划线减号的东西，也就是id 她会放在第二个捕获里
+				//到这里，就把id和复杂div分开了
 			}
 
 			// Verify a match, and that no context was specified for #id
-			if ( match && (match[1] || !context) ) {
 
+			if ( match && (match[1] || !context) ) {
+				//根据这个，选中了上面正则期望的2种结果，然后再在下面分开讨论
+				//也就是，如果是一个html，或者这个匹配到了，但是没有传递context上下文的话
+				//应该这么说，要么是html，要么就是前面不是html，那就是#id，是没有传递context的#id
 				// HANDLE: $(html) -> $(array)
 				if ( match[1] ) {
+					//这是一个元素标签
+					//TODO 这句再议
 					context = context instanceof jQuery ? context[0] : context;
 					doc = ( context ? context.ownerDocument || context : document );
 
 					// If a single string is passed in and it's a single tag
 					// just do a createElement and skip the rest
+					//rsingleTag = /^<(\w+)\s*\/?>(?:<\/\1>)?$/,
+					//判断是不是一个单独的标签，可以捕获<br/> <br></br>但是不能是<div>123</div>这样中间有内容的
 					ret = rsingleTag.exec( selector );
 
 					if ( ret ) {
@@ -506,21 +535,47 @@ jQuery.extend({
 	},
 
 	type: function( obj ) {
+		//这个obj是不是null或者undefined，只有这2个和null的2个等号的等价性是等的
+		//是的话，用String构造函数变化他，会变成undefined或者null
+		//否则的话，就用toString，这个操作原生变量的话，那么他就是[object XXX]的形式
+		//用class2type拿到其小写格式，如果拿不到，那一律返回object
+		//比如节点的那些element什么的，就不在class2type的范围内
 		return obj == null ?
 			String( obj ) :
 			class2type[ toString.call(obj) ] || "object";
 	},
 
+	//也就是看看，她是不是真的object，纯正的，而不是array之类的
+	// isPlainObject( { } )  true
+	// isPlainObject( new Object() )  true
+	// isPlainObject( { name: "CodePlayer"} )  true
+	// isPlainObject( { sayHi: function(){} } )  true
+	// isPlainObject( "CodePlayer" ) false
+	// isPlainObject( true ) false
+	// isPlainObject( 12 )  false
+	// isPlainObject( [ ] )  false
+	// isPlainObject( function(){ } ) false
+	// isPlainObject( document.location )  false(在IE中返回true)
 	isPlainObject: function( obj ) {
 		// Must be an Object.
 		// Because of IE, we also have to check the presence of the constructor property.
 		// Make sure that DOM nodes and window objects don't pass through, as well
+		//obj能转换为false 比如false，null，0，undefined
+		//这时候已经没有null和undefined了，讲道理type函数大概只能做:后面的了？？这个判断就看他是不是一个普通的object，不是array，number，boolean之类的
+		//第三个表面他是dom节点
+		//第四个，他是window对象
+		//如果满足任何一条，return false
+		//如果不满足，她可能是array，number之类的东西
 		if ( !obj || jQuery.type(obj) !== "object" || obj.nodeType || jQuery.isWindow( obj ) ) {
 			return false;
 		}
 
 		try {
 			// Not own constructor property must be Object
+			//看他是不是Object构造创建的
+			//TODO 如果他有constructor  不明
+			//他的constructor 不是自己的，一般来说constructor都是继承的，所以一般会返回false ！以后是true
+			//isPrototypeOf是object原型对象的特有属性，object构造出来的应该return true，！后是false，如果没有的话那就是自定义构造创建
 			if ( obj.constructor &&
 				!hasOwn.call(obj, "constructor") &&
 				!hasOwn.call(obj.constructor.prototype, "isPrototypeOf") ) {
@@ -918,6 +973,7 @@ jQuery.extend({
 });
 
 // Populate the class2type map
+// 	这会让clss2type变成 [object Boolean]:"boolean" [object Number]:"number" 的样式
 jQuery.each("Boolean Number String Function Array Date RegExp Object".split(" "), function(i, name) {
 	class2type[ "[object " + name + "]" ] = name.toLowerCase();
 });
