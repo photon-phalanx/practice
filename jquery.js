@@ -31,6 +31,8 @@ var jQuery = (function() {
 // 内部又有一个jquery
 var jQuery = function( selector, context ) {
 		// The jQuery object is actually just the init constructor 'enhanced'
+	//这里虽然有个new，但是由于init有返回值，所以new建立的对象会被抛弃
+	//2017.1.24 14.47提醒自己别绕进去了，这里的局部变量，fn里的init函数是可以访问到的，但是init创造的实例是访问不到的
 		return new jQuery.fn.init( selector, context, rootjQuery );
 	},
 
@@ -103,11 +105,14 @@ var jQuery = function( selector, context ) {
 
 	//前面的变量回头再说吧……太多了……
 	//重写了prototype,并且同样的赋值给了fn一份
+	//！important  写的过程中我一直在想，这个返回的是jquery.fn.init的实例，为什么能用fn里的变量?
+	// 后来发现在后面有jquery.fn.init.prototype=jquery.fn .......
+	// 这是后来补上的话，所以下面的分析有没有出问题？？？
 jQuery.fn = jQuery.prototype = {
 	constructor: jQuery,
 	init: function( selector, context, rootjQuery ) {
 		var match, elem, ret, doc;
-		//如果啥都没传，或者穿进来的相当于null/false之类的东西，则返回this，这里的this就是jQuery这个对象
+		//如果啥都没传，或者穿进来的相当于null/false之类的东西，则返回this，这里的this就是jQuery.init的实例
 		// Handle $(""), $(null), or $(undefined)
 		if ( !selector ) {
 			return this;
@@ -150,7 +155,7 @@ jQuery.fn = jQuery.prototype = {
 				// 这样写是为了使得得到的第二个数组是纯的东西，比如abc<div>abc,会过滤成<div>
 				//但是对于abc<div>>>abc这样的东西，只能过滤成<div>>
 				//第二种，捕获#开始到结尾全是字母数字下划线减号的东西，也就是id 她会放在第二个捕获里
-				//到这里，就把id和复杂div分开了
+				//到这里，就把id和div分开了
 			}
 
 			// Verify a match, and that no context was specified for #id
@@ -164,6 +169,8 @@ jQuery.fn = jQuery.prototype = {
 					//这是一个元素标签
 					//TODO 这句再议
 					context = context instanceof jQuery ? context[0] : context;
+					//这个context存在的话，ownerDocument也是#document吧？
+					// ownerDocument 属性以 Document 对象的形式返回节点的 owner document。
 					doc = ( context ? context.ownerDocument || context : document );
 
 					// If a single string is passed in and it's a single tag
@@ -173,16 +180,20 @@ jQuery.fn = jQuery.prototype = {
 					ret = rsingleTag.exec( selector );
 
 					if ( ret ) {
+						//TODO
 						if ( jQuery.isPlainObject( context ) ) {
 							selector = [ document.createElement( ret[1] ) ];
 							jQuery.fn.attr.call( selector, context, true );
 
 						} else {
+							//创建一个element,并放入一个数组
 							selector = [ doc.createElement( ret[1] ) ];
 						}
 
 					} else {
+						//如果不是一个单独的元素的话，结合前面的if的范围，那就是说这是一个复杂的html，就用这个方法
 						ret = jQuery.buildFragment( [ match[1] ], [ doc ] );
+						//如果可以cache，就复制一份再用
 						selector = ( ret.cacheable ? jQuery.clone(ret.fragment) : ret.fragment ).childNodes;
 					}
 
@@ -190,17 +201,22 @@ jQuery.fn = jQuery.prototype = {
 
 				// HANDLE: $("#id")
 				} else {
+					//是id相对就好处理的多了，用getElementById拿到，因为这里的是id是限制没有context的id，所以可以哦那个document去查找
 					elem = document.getElementById( match[2] );
 
+					//这是一个兼容性，如下英文所述，blackberry4.6会返回不在document里面的dom节点
 					// Check parentNode to catch when Blackberry 4.6 returns
 					// nodes that are no longer in the document #6963
 					if ( elem && elem.parentNode ) {
+						//这又是一个兼容性，ie和opera可能以name值来搜索，而不是id
+						//如果遇到这种情况，就用jquery的方法来搜索
 						// Handle the case where IE and Opera return items
 						// by name instead of ID
 						if ( elem.id !== match[2] ) {
 							return rootjQuery.find( selector );
 						}
 
+						//终于找到了，那么久放进去，okok
 						// Otherwise, we inject the element directly into the jQuery object
 						this.length = 1;
 						this[0] = elem;
@@ -208,30 +224,38 @@ jQuery.fn = jQuery.prototype = {
 
 					this.context = document;
 					this.selector = selector;
+					//所有的一切都要return this 这是连缀的需要
 					return this;
 				}
 
-			// HANDLE: $(expr, $(...))
+				//继续，这还是一个字符串，到这里已经认为是一个选择器表达式了，如果没有context的话，就在全局找
+				// HANDLE: $(expr, $(...))
 			} else if ( !context || context.jquery ) {
 				return ( context || rootjQuery ).find( selector );
 
+				//否则就是有context的了，那就要在context里找
 			// HANDLE: $(expr, context)
 			// (which is just equivalent to: $(context).find(expr)
 			} else {
+				//this是这个实例，他的constructor是这个jquery.fn.init构造函数，用了一个参数的构造方法，这是有context的jquery对象，然后用find方法
 				return this.constructor( context ).find( selector );
 			}
 
 		// HANDLE: $(function)
+		//	这就是一个语法糖了，绑定ready就好了
 		// Shortcut for document ready
 		} else if ( jQuery.isFunction( selector ) ) {
 			return rootjQuery.ready( selector );
 		}
 
+		//这个认为这个传入的就是一个jquery对象，那么就复制这里的selector和context
+		//				return this.constructor( context ).find( selector )
+		//别忘了上面可是有这么用的，所以这个很正常啦2333合情合理合法合规，只是这个语序真是乱死我了
 		if ( selector.selector !== undefined ) {
 			this.selector = selector.selector;
 			this.context = selector.context;
 		}
-
+		//最后，如果他是jquery对象（上面的），那就把selector复制给this，
 		return jQuery.makeArray( selector, this );
 	},
 
@@ -546,6 +570,8 @@ jQuery.extend({
 	},
 
 	//也就是看看，她是不是真的object，纯正的，而不是array之类的
+	//也就是他只能是new Object()或者{}创建
+	//TODO 对该函数存在疑问
 	// isPlainObject( { } )  true
 	// isPlainObject( new Object() )  true
 	// isPlainObject( { name: "CodePlayer"} )  true
@@ -745,7 +771,8 @@ jQuery.extend({
 			// The window, strings (and functions) also have 'length'
 			// Tweaked logic slightly to handle Blackberry 4.7 RegExp issues #6930
 			var type = jQuery.type( array );
-
+			//如果它没有长度（不是数组/伪数组） 或者他是字符串，或者他是函数，正则，window对象的话，就把它放到ret数组里
+			// 否则的话，她是数组/伪数组，用merge方法合并
 			if ( array.length == null || type === "string" || type === "function" || type === "regexp" || jQuery.isWindow( array ) ) {
 				push.call( ret, array );
 			} else {
