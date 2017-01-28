@@ -105,9 +105,12 @@ var jQuery = function( selector, context ) {
 
 	//前面的变量回头再说吧……太多了……
 	//重写了prototype,并且同样的赋值给了fn一份
-	//！important  写的过程中我一直在想，这个返回的是jquery.fn.init的实例，为什么能用fn里的变量?
+	//！important  写的过程中我一直在想，这个返回的是jquery.fn.init的实例，为什么能用fn里的属性和方法?
 	// 后来发现在后面有jquery.fn.init.prototype=jquery.fn .......
+	//如果原型上有一个length，在实例中做XX.length++ 只会在实例中增加一个+1的length属性，不会修改原型！！！！！！！
+	//所以一直想不通的为什么length共用问题就得到解答了
 	// 这是后来补上的话，所以下面的分析有没有出问题？？？
+	//init可以再看看jquery技术内幕p21的表格
 jQuery.fn = jQuery.prototype = {
 	constructor: jQuery,
 	init: function( selector, context, rootjQuery ) {
@@ -249,16 +252,16 @@ jQuery.fn = jQuery.prototype = {
 		}
 
 		//这个认为这个传入的就是一个jquery对象，那么就复制这里的selector和context
-		//				return this.constructor( context ).find( selector )
-		//别忘了上面可是有这么用的，所以这个很正常啦2333合情合理合法合规，只是这个语序真是乱死我了
 		if ( selector.selector !== undefined ) {
 			this.selector = selector.selector;
 			this.context = selector.context;
 		}
-		//最后，如果他是jquery对象（上面的），那就把selector复制给this，
+		//其实 jquery.fn.init 他就是个类数组
+		//如果selector是一个数组或者类数组，那就一个个添加，否则就添加
 		return jQuery.makeArray( selector, this );
 	},
 
+	//这个一般调试用，因为他具体是什么要看运行的时候的东西
 	// Start with an empty selector
 	selector: "",
 
@@ -268,6 +271,7 @@ jQuery.fn = jQuery.prototype = {
 	// The default length of a jQuery object is 0
 	length: 0,
 
+	//和上面的一起说，size返回length，length是当前对象上元素的个数，虽然面向对象鼓励用size，但是函数调用还是有开销的，到底选择哪个看自己
 	// The number of elements contained in the matched element set
 	size: function() {
 		return this.length;
@@ -279,6 +283,8 @@ jQuery.fn = jQuery.prototype = {
 
 	// Get the Nth element in the matched element set OR
 	// Get the whole matched element set as a clean array
+	// 如果没有给参数，就是toarray，否则的话，返回num对应的元素
+	// 如果是负数，那就从后往前拿
 	get: function( num ) {
 		return num == null ?
 
@@ -291,22 +297,28 @@ jQuery.fn = jQuery.prototype = {
 
 	// Take an array of elements and push it onto the stack
 	// (returning the new matched element set)
+	//反正就是构造出一个jquery对象，吧东西放在里面做
 	pushStack: function( elems, name, selector ) {
 		// Build a new jQuery matched element set
+		//这是jquery的方法
+		// constructor即为jquery,执行它返回一个实例
 		var ret = this.constructor();
 
 		if ( jQuery.isArray( elems ) ) {
 			push.apply( ret, elems );
+
 
 		} else {
 			jQuery.merge( ret, elems );
 		}
 
 		// Add the old object onto the stack (as a reference)
+		//设置一个prevobject指向现在的
 		ret.prevObject = this;
-
+		//修正上下任
 		ret.context = this.context;
 
+		//似乎为了调试用
 		if ( name === "find" ) {
 			ret.selector = this.selector + ( this.selector ? " " : "" ) + selector;
 		} else if ( name ) {
@@ -334,6 +346,7 @@ jQuery.fn = jQuery.prototype = {
 		return this;
 	},
 
+	//这是一个不错的技巧，可以把一个字符串的数字转化为数字
 	eq: function( i ) {
 		i = +i;
 		return i === -1 ?
@@ -350,6 +363,7 @@ jQuery.fn = jQuery.prototype = {
 	},
 
 	slice: function() {
+		//这就把这个jquery对象的对应需要的项拿了出来给pushStack了
 		return this.pushStack( slice.apply( this, arguments ),
 			"slice", slice.call(arguments).join(",") );
 	},
@@ -360,6 +374,7 @@ jQuery.fn = jQuery.prototype = {
 		}));
 	},
 
+	//结束pushstack，返回原来的jquery对象，如果没有的话则构造一个空对象
 	end: function() {
 		return this.prevObject || this.constructor(null);
 	},
@@ -374,6 +389,8 @@ jQuery.fn = jQuery.prototype = {
 // Give the init function the jQuery prototype for later instantiation
 jQuery.fn.init.prototype = jQuery.fn;
 
+	//extend用于合并多个对象的属性到第一个对象里，如果第一个参数是true的话，那表明递归合并，意思是，本来如果有重名对象，那么会覆盖，
+	// 但是如果这个为true了，会递归的添加进去
 jQuery.extend = jQuery.fn.extend = function() {
 	var options, name, src, copy, copyIsArray, clone,
 		target = arguments[0] || {},
@@ -381,6 +398,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 		length = arguments.length,
 		deep = false;
 
+	//处理是不是递归的
 	// Handle a deep copy situation
 	if ( typeof target === "boolean" ) {
 		deep = target;
@@ -389,11 +407,16 @@ jQuery.extend = jQuery.fn.extend = function() {
 		i = 2;
 	}
 
+	//如果这个target，也就是期望的第一个对象，他不是对象或者函数的话，那就把它变成一个空对象
 	// Handle case when target is a string or something (possible in deep copy)
 	if ( typeof target !== "object" && !jQuery.isFunction(target) ) {
 		target = {};
 	}
 
+	//如果length和i一样 这个i永远指示从第几个开始处理，也就是后面有几个要合并进来的
+	//如果这2个相等，表明没有要合并进来的，那他会把传进来的那唯一一个参数作为要合并的项，把它合并到this里
+	//其实jquery返回的是jquery的fn的init创建出来的对象，他能访问到jquery的fn里的方法是因为fn给了init的原型，
+	// 而这个extend在原型里，所以也是可以访问的，所以这个this就是指向这个实例的
 	// extend jQuery itself if only one argument is passed
 	if ( length === i ) {
 		target = this;
@@ -401,6 +424,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 	}
 
 	for ( ; i < length; i++ ) {
+		//用了!= 同时处理了null和undefined
 		// Only deal with non-null/undefined values
 		if ( (options = arguments[ i ]) != null ) {
 			// Extend the base object
@@ -409,24 +433,34 @@ jQuery.extend = jQuery.fn.extend = function() {
 				copy = options[ name ];
 
 				// Prevent never-ending loop
+				//属性相同的情况下不复制，这不是为了效率，是为了防止死循环
 				if ( target === copy ) {
 					continue;
 				}
 
 				// Recurse if we're merging plain objects or arrays
 				if ( deep && copy && ( jQuery.isPlainObject(copy) || (copyIsArray = jQuery.isArray(copy)) ) ) {
+					//如果是个数组的话，clone就判断src是不是数组，不是的话就吧clone变成空数组，否则变成src
+					// 这个包括了src不存在（就是待添加的对象里没有这个属性的情况）
 					if ( copyIsArray ) {
 						copyIsArray = false;
 						clone = src && jQuery.isArray(src) ? src : [];
 
 					} else {
+						//这个else也就是说是深拷贝，同时copy存在，也就是不是null和undefined和0这种，同时是copy一个纯object.......喵？
+						//反正就把clone变成纯object啦……
 						clone = src && jQuery.isPlainObject(src) ? src : {};
 					}
 
+					//经历了上面的if后，意思就是说 如果是深拷贝，待拷贝的是数组，如果原来的不是数组的，就会变成数组，
+					//待拷贝的是对象，且原来不是对象的，就变成对象
+
+					//它调用了jquery的entend去复制
 					// Never move original objects, clone them
 					target[ name ] = jQuery.extend( deep, clone, copy );
 
 				// Don't bring in undefined values
+					//其他情况直接给，当然undefined不给
 				} else if ( copy !== undefined ) {
 					target[ name ] = copy;
 				}
@@ -439,11 +473,14 @@ jQuery.extend = jQuery.fn.extend = function() {
 };
 
 jQuery.extend({
+	//这些方法作为静态方法被加入，用extend合并的
 	noConflict: function( deep ) {
+		//如果$是jquery的话，就把原来的$赋给$，也就是说jquery不再占用全局的$，并且返回jquery函数给新对象
 		if ( window.$ === jQuery ) {
 			window.$ = _$;
 		}
 
+		//deep的话，吧jquery这个变量的控制权也释放
 		if ( deep && window.jQuery === jQuery ) {
 			window.jQuery = _jQuery;
 		}
@@ -632,21 +669,29 @@ jQuery.extend({
 		throw new Error( msg );
 	},
 
+	//解析json
 	parseJSON: function( data ) {
 		if ( typeof data !== "string" || !data ) {
 			return null;
 		}
 
 		// Make sure leading/trailing whitespace is removed (IE can't handle it)
+		//移除开头末尾的空白
 		data = jQuery.trim( data );
 
 		// Attempt to parse using the native JSON parser first
+		//es5有原生方法，那当然最好了
 		if ( window.JSON && window.JSON.parse ) {
 			return window.JSON.parse( data );
 		}
 
 		// Make sure the incoming data is actual JSON
 		// Logic borrowed from http://json.org/json2.js
+		// 这个还是蛮厉害的
+		// 	rvalidchars = /^[\],:{}\s]*$/,是否只含有这些字符
+		// rvalidescape = /\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, 匹配转义字符
+		//	rvalidtokens = /"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, 吧字符串，true，false，null，数值替换成]
+		//	rvalidbraces = /(?:^|:|,)(?:\s*\[)+/g, //删除正确的左括号
 		if ( rvalidchars.test( data.replace( rvalidescape, "@" )
 			.replace( rvalidtokens, "]" )
 			.replace( rvalidbraces, "")) ) {
@@ -700,22 +745,31 @@ jQuery.extend({
 	// Convert dashed to camelCase; used by the css and data modules
 	// Microsoft forgot to hump their vendor prefix (#9572)
 	camelCase: function( string ) {
+		//rmsPrefix 是兼容ie
 		return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
 	},
 
 	nodeName: function( elem, name ) {
+		//判断nodename是否相等
 		return elem.nodeName && elem.nodeName.toUpperCase() === name.toUpperCase();
 	},
 
 	// args is for internal usage only
+	//这样的each值得仿造学习
 	each: function( object, callback, args ) {
+		//判断是数组/伪数组还是function/对象
 		var name, i = 0,
 			length = object.length,
 			isObj = length === undefined || jQuery.isFunction( object );
 
+
+		//这里分2大种，如果是一个object，那就用for in，如果是数组类的就用for
+		//如果isobj不是undefined的话，那就是数组/伪数组，否则就是对象/函数
+		//如果有args的话，就作为回调函数的参数
 		if ( args ) {
 			if ( isObj ) {
 				for ( name in object ) {
+					//回调是false的话，就停止遍历
 					if ( callback.apply( object[ name ], args ) === false ) {
 						break;
 					}
@@ -729,6 +783,7 @@ jQuery.extend({
 			}
 
 		// A special, fast, case for the most common use of each
+			//否则就默认该项，项名/下标 作为参数
 		} else {
 			if ( isObj ) {
 				for ( name in object ) {
@@ -805,6 +860,7 @@ jQuery.extend({
 		return -1;
 	},
 
+	//合并数组
 	merge: function( first, second ) {
 		var i = first.length,
 			j = 0;
@@ -847,6 +903,9 @@ jQuery.extend({
 			i = 0,
 			length = elems.length,
 			// jquery objects are treated as arrays
+			// 检查的还真仔细，length＞0，第一项，最后一项存在或者length等于0或者这是真数组
+			// 或者只要它是一个jquery对象就可以
+
 			isArray = elems instanceof jQuery || length !== undefined && typeof length === "number" && ( ( length > 0 && elems[ 0 ] && elems[ length -1 ] ) || length === 0 || jQuery.isArray( elems ) ) ;
 
 		// Go through the array, translating each of the items to their
@@ -879,6 +938,8 @@ jQuery.extend({
 
 	// Bind a function to a context, optionally partially applying any
 	// arguments.
+	//proxy接受2种参数，fn，context或者context，name，如果是第二种，第一个if将进行转化
+	//这个函数能包装一个函数，使得他有特定上下文，然后还可以传多余参数做默认参数
 	proxy: function( fn, context ) {
 		if ( typeof context === "string" ) {
 			var tmp = fn[ context ];
@@ -893,6 +954,7 @@ jQuery.extend({
 		}
 
 		// Simulated bind
+		//多余参数会变成数组拿下来，调用proxy的时候，会拿到多余参数，然后返回一个函数，再调用这个函数的时候，这个参数会跟在多余的那些参数的后面做参数
 		var args = slice.call( arguments, 2 ),
 			proxy = function() {
 				return fn.apply( context, args.concat( slice.call( arguments ) ) );
@@ -5818,6 +5880,7 @@ var nodeNames = "abbr|article|aside|audio|bdi|canvas|data|datalist|details|figca
 		"header|hgroup|mark|meter|nav|output|progress|section|summary|time|video",
 	rinlinejQuery = / jQuery\d+="(?:\d+|null)"/g,
 	rleadingWhitespace = /^\s+/,
+	//?!的用法要求后面的与列出来的不相配 \w:匹配了标签 外层的匹配了属性和属性 比如<div class="123"/>
 	rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:]+)[^>]*)\/>/ig,
 	rtagName = /<([\w:]+)/,
 	rtbody = /<tbody/i,
@@ -5845,6 +5908,7 @@ wrapMap.optgroup = wrapMap.option;
 wrapMap.tbody = wrapMap.tfoot = wrapMap.colgroup = wrapMap.caption = wrapMap.thead;
 wrapMap.th = wrapMap.td;
 
+	//IE不支持的解决方法是，在外层在包裹一层
 // IE can't serialize <link> and <script> tags normally
 if ( !jQuery.support.htmlSerialize ) {
 	wrapMap._default = [ 1, "div<div>", "</div>" ];
@@ -6274,6 +6338,11 @@ function cloneFixAttributes( src, dest ) {
 	dest.removeAttribute( "_change_attached" );
 }
 
+//这个注释在参数selector复杂的时候写上
+//在调用这个函数的时候，是这样的格式
+// ret = jQuery.buildFragment( [ match[1] ], [ doc ] );
+// 那就看吧 这个doc就是#document了
+//
 jQuery.buildFragment = function( args, nodes, scripts ) {
 	var fragment, cacheable, cacheresults, doc,
 	first = args[ 0 ];
@@ -6288,6 +6357,9 @@ jQuery.buildFragment = function( args, nodes, scripts ) {
 	// Ensure that an attr object doesn't incorrectly stand in as a document object
 	// Chrome and Firefox seem to allow this to occur and will throw exception
 	// Fixes #8950
+	// 这里做修正，上面的if把doc变成#document，如果没有ownerdocument的话就把nodes[0]当作document，
+	// 然后这里做检测，如果他没有这个方法的话，就手动把document给doc
+	// 因为这个doc可能是来自iframe的外部doc，所以不能直接粗暴的把这2个if合并成doc=document
 	if ( !doc.createDocumentFragment ) {
 		doc = document;
 	}
@@ -6297,19 +6369,25 @@ jQuery.buildFragment = function( args, nodes, scripts ) {
 	// IE 6 doesn't like it when you put <object> or <embed> elements in a fragment
 	// Also, WebKit does not clone 'checked' attributes on cloneNode, so don't cache
 	// Lastly, IE6,7,8 will not correctly reuse cached fragments that were created from unknown elems #10501
+	//这里讲述可以缓存的条件，长度小于512，doc是当前的而不是iframe的，以<开头的，即不是文本节点，没有script/object、embed、option、style
+	// 的，可以正确复制html5或者没有html5的/可以复制checked或者没有checked的
 	if ( args.length === 1 && typeof first === "string" && first.length < 512 && doc === document &&
 		first.charAt(0) === "<" && !rnocache.test( first ) &&
 		(jQuery.support.checkClone || !rchecked.test( first )) &&
 		(jQuery.support.html5Clone || !rnoshimcache.test( first )) ) {
-
+		//缓存命中的话，直接读出来
+		//当然在调用的时候，是要复制一份在用的
 		cacheable = true;
 
 		cacheresults = jQuery.fragments[ first ];
+		//不是第一次的话直接拿，是第一次的话还得存进去，写在下面了
 		if ( cacheresults && cacheresults !== 1 ) {
 			fragment = cacheresults;
 		}
 	}
 
+	//没有做上面的话，或者是第1次转换，这时候没有缓存，或者是第二次转换，上面是1，第三次开始就直接读了
+	// 那就老老实实的来，然后如果能缓存就缓存
 	if ( !fragment ) {
 		fragment = doc.createDocumentFragment();
 		jQuery.clean( args, doc, fragment, scripts );
@@ -6445,12 +6523,15 @@ jQuery.extend({
 		return clone;
 	},
 
+	//		jQuery.clean( args, doc, fragment, scripts );
+	//讲道理的话，在fragment里，context就是doc对象了，args还是数组，fragment是占位符，scripts是存放scripts元素的
+	//TODO 很多就是修复ie的bug，先不解析了
 	clean: function( elems, context, fragment, scripts ) {
 		var checkScriptType, script, j,
 				ret = [];
 
 		context = context || document;
-
+		//一样还是要修正的
 		// !context.createElement fails in IE with an error but returns typeof 'object'
 		if ( typeof context.createElement === "undefined" ) {
 			context = context.ownerDocument || context[0] && context[0].ownerDocument || document;
@@ -6458,9 +6539,10 @@ jQuery.extend({
 
 		for ( var i = 0, elem; (elem = elems[i]) != null; i++ ) {
 			if ( typeof elem === "number" ) {
+				//数值转字符串
 				elem += "";
 			}
-
+			//这里过滤空字符串
 			if ( !elem ) {
 				continue;
 			}
@@ -6468,18 +6550,27 @@ jQuery.extend({
 			// Convert html string into DOM nodes
 			if ( typeof elem === "string" ) {
 				if ( !rhtml.test( elem ) ) {
+					//他只是文本，创建文本节点
+					//或者他有&nbsp;之类的东西，这类东西createTextNode不转义 不用它生成
 					elem = context.createTextNode( elem );
 				} else {
+					//这个正则把自关闭的变成普通的
+					//如<div/> 变成<div></div>
 					// Fix "XHTML"-style tags in all browsers
 					elem = elem.replace(rxhtmlTag, "<$1></$2>");
 
 					// Trim whitespace, otherwise indexOf won't work as expected
+					//拿到标签，比如div
 					var tag = ( rtagName.exec( elem ) || ["", ""] )[1].toLowerCase(),
+						//wrap真的很精妙，他写了对应的东西的深度和父标签的包裹
 						wrap = wrapMap[ tag ] || wrapMap._default,
 						depth = wrap[0],
 						div = context.createElement("div"),
 						safeChildNodes = safeFragment.childNodes,
 						remove;
+
+					//查阅资料后得知，这里的safe指的是可以正确解析的html5代码，ie9以下不支持html5
+					//解决方法是 用createElement创建一个对应标签，这个可以被浏览器解析
 
 					// Append wrapper element to unknown element safe doc fragment
 					if ( context === document ) {
@@ -6493,16 +6584,25 @@ jQuery.extend({
 					// Go to html and back, then peel off extra wrappers
 					div.innerHTML = wrap[1] + elem + wrap[2];
 
+					//一层层移除后，这个剩下的就是最早的节点，没有任何包裹的
 					// Move to the right depth
 					while ( depth-- ) {
 						div = div.lastChild;
 					}
 
+					//针对ie 6，7
 					// Remove IE's autoinserted <tbody> from table fragments
 					if ( !jQuery.support.tbody ) {
 
 						// String was a <table>, *may* have spurious <tbody>
+						//	rtbody = /<tbody/i,
 						var hasBody = rtbody.test(elem),
+							//看上去真吓人 = =
+							// 1.如果tag是table并且没有tbody的话，这时候浏览器可能要添加tbody了
+							// 这个div.firstchild就是table，他的childnodes就是什么caption，tbody,thead等等的集合
+							// 2.如果有tbody或者不是table的话，做:后面的，他判断的是，如果html包裹了table并且里面没有tbody
+							// 这时候浏览器可能要添加tbody了，这时候div是table，div.childnodes是那些东西的集合
+							// 3.含有tbody，于是并不用处理，那就是空
 							tbody = tag === "table" && !hasBody ?
 								div.firstChild && div.firstChild.childNodes :
 
