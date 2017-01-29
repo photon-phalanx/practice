@@ -968,6 +968,16 @@ jQuery.extend({
 
 	// Mutifunctional method to get and set values to a collection
 	// The value/s can optionally be executed if it's a function
+	// chainable也是看读写的，如果是1，那是能链式，也就是写的意思
+	// access接受2种参数，如果key是属性名，则value是值，如果key是对象，则value是undefined pass不用，不看
+	// 看一下attr的调用：	attr: function( name, value ) {
+	//return jQuery.access( this, jQuery.attr, name, value, arguments.length > 1 );
+	//	},
+	// $('#box').attr('title')
+	// $('#box').attr('title','标题')
+	// $('#box').attr({title:'标题',data-menu-toggle:'dropdown'})
+	// $('#box').attr('title',function () {....})
+	//$(selector).css(function(){ ............. })  //set
 	access: function( elems, fn, key, value, chainable, emptyGet, pass ) {
 		var exec,
 			bulk = key == null,
@@ -975,6 +985,7 @@ jQuery.extend({
 			length = elems.length;
 
 		// Sets many values
+		//这里走key是object的路，递归调用 如$('#box').attr({title:'标题',data-menu-toggle:'dropdown'})
 		if ( key && typeof key === "object" ) {
 			for ( i in key ) {
 				jQuery.access( elems, fn, i, key[i], 1, emptyGet, value );
@@ -982,10 +993,22 @@ jQuery.extend({
 			chainable = 1;
 
 		// Sets one value
+			//执行set操作
+			//下面是网上的资料的解析
+			//当键为非对象时，先判断值不为空，进入后做了4件事情：
+			//1.如果值是函数，则exec为真。
+			//2.如果键为空，则   这个不知道是什么时候的
+				//1.当值为函数做了相应的处理
+				//2.当值为字符串执行回调
+			//3.循环元素集合执行回调
+			//4.把chaunable设置为1，方便在return中进行处理
+		//一般应该2很少？？？？
 		} else if ( value !== undefined ) {
 			// Optionally, function values get executed if exec is true
+			// 看看这个value是不是函数
 			exec = pass === undefined && jQuery.isFunction( value );
 
+			//如果key是null还是undefined……要干什么呢
 			if ( bulk ) {
 				// Bulk operations only iterate when executing function values
 				if ( exec ) {
@@ -1014,6 +1037,7 @@ jQuery.extend({
 			elems :
 
 			// Gets
+			// 这个get是简单的，如果bulk有的话，直接做，否则判断长度，如果也没有长度的话返回undefined，有长度就返回第一个
 			bulk ?
 				fn.call( elems ) :
 				length ? fn( elems[0], key ) : emptyGet;
@@ -1132,6 +1156,8 @@ return jQuery;
 var flagsCache = {};
 
 // Convert String-formatted flags into Object-formatted ones and store in cache
+	//这个将字符串转化为对象 如果flags是 xj tt 的话，就返回{xj:true,tt:true} 同时吧xj tt 缓存到flagsCache里，也就是 flagsCache["xj tt"] == 那个obj
+
 function createFlags( flags ) {
 	var object = flagsCache[ flags ] = {},
 		i, length;
@@ -1165,9 +1191,10 @@ function createFlags( flags ) {
  *
  */
 jQuery.Callbacks = function( flags ) {
-
+	//flags支持once memory unique stopOnFalse
 	// Convert flags from String-formatted to Object-formatted
 	// (we check in cache first)
+	//先从缓存里找，没有再去create，失败为空对象
 	flags = flags ? ( flagsCache[ flags ] || createFlags( flags ) ) : {};
 
 	var // Actual callback list
@@ -1187,6 +1214,7 @@ jQuery.Callbacks = function( flags ) {
 		// Index of currently firing callback (modified by remove if needed)
 		firingIndex,
 		// Add one or several callbacks to the list
+		// 用来添加回调函数
 		add = function( args ) {
 			var i,
 				length,
@@ -1198,8 +1226,10 @@ jQuery.Callbacks = function( flags ) {
 				type = jQuery.type( elem );
 				if ( type === "array" ) {
 					// Inspect recursively
+					// 如果是数组，则递归调用add
 					add( elem );
 				} else if ( type === "function" ) {
+					//如果是函数的话，判断，如果不是unique或者没有添加过的话，再添加，否则忽略
 					// Add if not in unique mode and callback is not in
 					if ( !flags.unique || !self.has( elem ) ) {
 						list.push( elem );
@@ -1210,12 +1240,17 @@ jQuery.Callbacks = function( flags ) {
 		// Fire callbacks
 		fire = function( context, args ) {
 			args = args || [];
+			//memory是undefined，表示没有触发回调或者禁用
+			//[context,args] 触发，momery模式下，回调返回值不是false或者非stopOnFalse模式
+			//true 触发，非memory模式或者回调返回false，stopOnFalse模式
+
 			memory = !flags.memory || [ context, args ];
 			fired = true;
 			firing = true;
 			firingIndex = firingStart || 0;
 			firingStart = 0;
 			firingLength = list.length;
+			//按照顺序调用回调函数
 			for ( ; list && firingIndex < firingLength; firingIndex++ ) {
 				if ( list[ firingIndex ].apply( context, args ) === false && flags.stopOnFalse ) {
 					memory = true; // Mark as halted
@@ -1225,13 +1260,16 @@ jQuery.Callbacks = function( flags ) {
 			firing = false;
 			if ( list ) {
 				if ( !flags.once ) {
+					//不是一次性的话，
 					if ( stack && stack.length ) {
 						memory = stack.shift();
+						//从stack里弹出一个上下文和参数，执行
+						//如果在firing状态下，有新来的话，会在stack排队
 						self.fireWith( memory[ 0 ], memory[ 1 ] );
 					}
 				} else if ( memory === true ) {
 					self.disable();
-				} else {
+				} else { //即once 那就把列表清空
 					list = [];
 				}
 			}
@@ -1239,18 +1277,22 @@ jQuery.Callbacks = function( flags ) {
 		// Actual Callbacks object
 		self = {
 			// Add a callback or a collection of callbacks to the list
+			//利用self里的add函数来添加，这个是要调用外面的add来添加的
 			add: function() {
 				if ( list ) {
 					var length = list.length;
 					add( arguments );
 					// Do we need to add the callbacks to the
 					// current firing batch?
+					// 如果正在回调，这个新加的也可以回调
 					if ( firing ) {
 						firingLength = list.length;
 					// With memory, if we're not firing then
 					// we should call right away, unless previous
 					// firing was halted (stopOnFalse)
+						//只有memory模式下，触发过，并且回调未执行中
 					} else if ( memory && memory !== true ) {
+						//立刻执行
 						firingStart = length;
 						fire( memory[ 0 ], memory[ 1 ] );
 					}
@@ -1263,22 +1305,28 @@ jQuery.Callbacks = function( flags ) {
 					var args = arguments,
 						argIndex = 0,
 						argLength = args.length;
+					//很典型的循环，找到相等的
 					for ( ; argIndex < argLength ; argIndex++ ) {
 						for ( var i = 0; i < list.length; i++ ) {
 							if ( args[ argIndex ] === list[ i ] ) {
 								// Handle firingIndex and firingLength
+								//如果正在执行中的话，啊呀赶快把他弄掉，否则回调就要触发了
 								if ( firing ) {
+									//如果在firing队列中，不知道这是不是为了健壮性
 									if ( i <= firingLength ) {
 										firingLength--;
+										//如果它比现在的小，也就是他已经执行过了，那也没办法，但是这个index要--，否则的话岂不是要漏执行一个了
 										if ( i <= firingIndex ) {
 											firingIndex--;
 										}
 									}
 								}
 								// Remove the element
+								//移了吧
 								list.splice( i--, 1 );
 								// If we have some unicity property then
 								// we only need to do this once
+								//如果这是独一无二的话，那ok，不用再找了，否则要找完
 								if ( flags.unique ) {
 									break;
 								}
@@ -1310,6 +1358,7 @@ jQuery.Callbacks = function( flags ) {
 			disable: function() {
 				list = stack = memory = undefined;
 				return this;
+				//通通undefined掉
 			},
 			// Is it disabled?
 			disabled: function() {
@@ -1318,6 +1367,8 @@ jQuery.Callbacks = function( flags ) {
 			// Lock the list in its current state
 			lock: function() {
 				stack = undefined;
+				//不是memory模式或者stopOnFalse触发了false的话会禁用
+				//否则仍然可以添加回调，触发回调，但是上下文无法改变
 				if ( !memory || memory === true ) {
 					self.disable();
 				}
@@ -1331,9 +1382,11 @@ jQuery.Callbacks = function( flags ) {
 			fireWith: function( context, args ) {
 				if ( stack ) {
 					if ( firing ) {
+						//如果正在执行的话，那就要等等
 						if ( !flags.once ) {
 							stack.push( [ context, args ] );
 						}
+						//不是一次性或者没有memory的话，就直接来
 					} else if ( !( flags.once && memory ) ) {
 						fire( context, args );
 					}
@@ -1363,6 +1416,7 @@ var // Static reference to slice
 jQuery.extend({
 
 	Deferred: function( func ) {
+		//现在创建成功失败和消息回调3种队列，一开始状态是pending，并放到lists里面
 		var doneList = jQuery.Callbacks( "once memory" ),
 			failList = jQuery.Callbacks( "once memory" ),
 			progressList = jQuery.Callbacks( "memory" ),
@@ -1372,6 +1426,8 @@ jQuery.extend({
 				reject: failList,
 				notify: progressList
 			},
+
+			//现在建立promise，done，fail，progress分别对应对3种队列添加，state返回现在的状态，then同时添加3个
 			promise = {
 				done: doneList.add,
 				fail: failList.add,
@@ -1389,6 +1445,8 @@ jQuery.extend({
 					deferred.done( doneCallbacks ).fail( failCallbacks ).progress( progressCallbacks );
 					return this;
 				},
+				//always在done和fail都会执行，但是为什么要apply？和上面的then一样不可以吗
+				//TODO 这个问题待解决
 				always: function() {
 					deferred.done.apply( deferred, arguments ).fail.apply( deferred, arguments );
 					return this;
@@ -1462,12 +1520,13 @@ jQuery.extend({
 			length = args.length,
 			pValues = new Array( length ),
 			count = length,
-			pCount = length,
+			pCount = length,//子队列的消息参数
 			deferred = length <= 1 && firstParam && jQuery.isFunction( firstParam.promise ) ?
 				firstParam :
 				jQuery.Deferred(),
 			promise = deferred.promise();
 		function resolveFunc( i ) {
+			//成功时-1
 			return function( value ) {
 				args[ i ] = arguments.length > 1 ? sliceDeferred.call( arguments, 0 ) : value;
 				if ( !( --count ) ) {
@@ -1483,13 +1542,14 @@ jQuery.extend({
 		}
 		if ( length > 1 ) {
 			for ( ; i < length; i++ ) {
+				//添加监听函数到每一个队列的末尾
 				if ( args[ i ] && args[ i ].promise && jQuery.isFunction( args[ i ].promise ) ) {
 					args[ i ].promise().then( resolveFunc(i), deferred.reject, progressFunc(i) );
 				} else {
 					--count;
 				}
 			}
-			if ( !count ) {
+			if ( !count ) {//没有了就成功了
 				deferred.resolveWith( deferred, args );
 			}
 		} else if ( deferred !== firstParam ) {
