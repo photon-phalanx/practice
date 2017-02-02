@@ -1,0 +1,177 @@
+<!--
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery.min.js"></script>
+    <script>
+        $(function () {
+            $(".container .tab li").click(function () {
+                var self = $(this);
+                self.parent().children(".select").removeClass("select");
+                self.addClass("select");
+            })
+        })
+    </script>
+    <style>
+        li {
+            text-decoration: none;
+        }
+        div,ul {
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 800px;
+        }
+
+
+        .container .tab {
+            font-size: 0;  /*没有这个，li之间会有空格，当然其实float可以解决这个问题的*/
+            position: relative;
+            padding: 0;
+            margin: 0 20px;
+        }
+
+        .container .tab li {
+            display: inline-block;
+            font-size: 16px;
+            line-height: 1.5;
+            padding: 15px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .container .tab .context {
+            position: absolute;
+            display: none;
+            top: 55px;
+            left: 0;  /*left和ul的padding相同，top和li的height+padding相同*/
+            padding: 10px;
+            border: 1px solid #ccc;
+            z-index: -1;
+        }
+
+        .container .tab li.select {
+            border: 1px solid #ccc;
+            border-bottom: 1px solid #fff;
+        }
+        .container .tab li.select>.context {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <ul class="tab">
+        <li class="select"><span>我是1</span>
+            <div class="context">我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长我是1我很长</div>
+        </li>
+
+        <li>
+            <span>我是2</span>
+            <div class="context">我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长我是2我也长</div>
+        </li>
+        <li>
+            <span>我是3</span>
+            <div class="context">我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长我是3我也长</div>
+        </li>
+    </ul>
+</div>
+
+这种方法虽然文字可以自适应，但是因为用了绝对定位，离开了文档流，那么container父元素就管不住了，之后的添加都不太好
+虽然可以定一个最大宽度，也可以用js调整宽度……但不是好的方法吧
+
+</body>
+</html>
+
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery.min.js"></script>
+    <script>
+        $(function () {
+            $(".container .tab li").each(function (index) {
+                $(this).click(function (event) {
+                    $(".container .tab li.select").removeClass("select");
+                    $(".container .context li.select").removeClass("select");
+                    $(this).addClass("select");
+                    $(".container .context li:eq("+index+")").addClass("select");
+                })
+            })
+        })
+    </script>
+    <style>
+        li {
+            text-decoration: none;
+        }
+        div,ul {
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 800px;
+        }
+
+        .container .tab {
+            font-size: 0;  /*没有这个，li之间会有空格，当然其实float可以解决这个问题的*/
+            padding: 0;
+            margin: 0 20px;
+        }
+
+        .container .tab li {
+            display: inline-block;
+            font-size: 16px;
+            line-height: 1.5;
+            padding: 15px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .container .tab li.select {
+            border: 1px solid #ccc;
+            border-bottom: 1px solid #fff;
+        }
+
+        .container .context {
+            margin: 0 20px;
+            border: 1px solid #ccc;
+            position: relative;
+            top: -1px;
+            z-index: -1;
+            min-height: 300px;
+            text-align: center;
+        }
+
+        .container .context li {
+            display: none;
+        }
+
+        .container .context li.select {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <ul class="tab">
+        <li class="select"><span>我是1</span></li>
+        <li><span>我是2</span></li>
+        <li><span>我是3</span></li>
+    </ul>
+    <ul class="context">
+        <li class="select">我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1我是1</li>
+        <li>我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2我是2</li>
+        <li>我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3我是3</li>
+    </ul>
+</div>
+</body>
+</html>
