@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新浪首页</title>
+    <link href="clear.css" rel="stylesheet" />
+    <link href="icon/iconfont.css" rel="stylesheet"/>
+    <link href="box-and-nav.css" rel="stylesheet"/>
+    <link href="logoAndSearch.css" rel="stylesheet" />
+    <link href="classification.css" rel="stylesheet"/>
+    <link href="main-content.css" rel="stylesheet"/>
+    <script src="http://apps.bdimg.com/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script src="jqueryCss.js"></script>
+</head>
+<body>
+
+<div class="box">
+    <nav class="top-nav">
+        <div class="nav-box">
+            <div class="left-nav">
+                <div class="detail"><a>设为首页</a></div>
+                <div class="detail"><a>手机新浪网</a></div>
+                <div class="detail relative">
+                    <a>移动客户端</a>
+                    <i class="iconfont icon-xiala"></i>
+                    <ul class="dropdown">
+                        <li class="dropdown-detail">新浪微博</li>
+                        <li class="dropdown-detail">新浪新闻</li>
+                        <li class="dropdown-detail">新浪体育</li>
+                        <li class="dropdown-detail">新浪娱乐</li>
+                        <li class="dropdown-detail">新浪财经</li>
+                        <li class="dropdown-detail">新浪港股通</li>
+                        <li class="dropdown-detail">新浪博客</li>
+                        <li class="dropdown-detail">天气通</li>
+                        <li class="dropdown-detail">新浪游戏</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="right-nav">
+                <div class="detail"><a>登录</a></div>
+                <div class="detail relative">
+                    <a>微博</a>
+                    <i class="iconfont icon-xiala"></i>
+                    <ul class="dropdown relative">
+                        <li class="dropdown-detail">私信</li>
+                        <li class="dropdown-detail">评论</li>
+                        <li class="dropdown-detail">@我</li>
+                    </ul>
+                </div>
+                <div class="detail relative">
+                    <a>博客</a>
+                    <i class="iconfont icon-xiala"></i>
+                    <ul class="dropdown">
+                        <li class="dropdown-detail">博客评论</li>
+                        <li class="dropdown-detail">未读提醒</li>
+                    </ul>
+                </div>
+                <div class="detail relative">
+                    <a>邮箱</a>
+                    <i class="iconfont icon-xiala"></i>
+                    <ul class="dropdown relative">
+                        <li class="dropdown-detail">免费邮箱</li>
+                        <li class="dropdown-detail">vip邮箱</li>
+                        <li class="dropdown-detail">企业邮箱</li>
+                    </ul>
+                </div>
+                <div class="detail"><a>网站导航</a></div>
+            </div>
+        </div>
+    </nav>
+
+    <!--
+    接下来是logo部分,要有41px的margin-top，因为fixed脱离文档流了
+    记得firefox有个bug，于是用padding-top好了，反正看不到的233
+    -->
+    <div class="logo-and-search">
+        <a class="logo">.</a>
+        <div class="search-bar">
+            <select class="search-choice">
+                <option selected>新闻</option>
+            </select>
+            <input class="search-content" type="text" placeholder="大家都在搜:面包车翻入河沟"/>
+            <span class="search"><i class="iconfont icon-sousuo-sousuo"></i></span>
+            <span class="weather">
+                <a>
+                    杭州
+                    <i class="iconfont icon-qingtian"></i>
+                    7℃
+                    </a>
+            </span>
+        </div>
+    </div>
+
+    <!--下面的分类栏了-->
+    <div class="classification">
+        <div class="class-block">
+            <ul>
+                <li class="detail">新闻</li>
+                <li class="detail">军事</li>
+                <li class="detail">社会</li>
+                <li class="detail">国际</li>
+            </ul>
+            <ul>
+                <li class="detail">财经</li>
+                <li class="detail">股票</li>
+                <li class="detail">基金</li>
+                <li class="detail">外汇</li>
+            </ul>
+            <ul>
+                <li class="detail">科技</li>
+                <li class="detail">手机</li>
+                <li class="detail">探索</li>
+                <li class="detail">众测</li>
+            </ul>
+        </div>
+        <div class="class-block">
+            <ul>
+                <li class="detail">体育</li>
+                <li class="detail">NBA</li>
+                <li class="detail">英超</li>
+                <li class="detail">中超</li>
+            </ul>
+            <ul>
+                <li class="detail">娱乐</li>
+                <li class="detail">明星</li>
+                <li class="detail">电影</li>
+                <li class="detail">星座</li>
+            </ul>
+            <ul>
+                <li class="detail">汽车</li>
+                <li class="detail">报价</li>
+                <li class="detail">买车</li>
+                <li class="detail">秒车</li>
+            </ul>
+        </div>
+        <div class="class-block">
+            <ul>
+                <li class="detail">博客</li>
+                <li class="detail" style="width: 36px">专栏</li>
+                <li class="detail">文史</li>
+                <li class="detail">天气</li>
+            </ul>
+            <ul>
+                <li class="detail">视频</li>
+                <li class="detail" style="width: 36px">综艺</li>
+                <li class="detail">VR</li>
+                <li class="detail">直播</li>
+            </ul>
+            <ul>
+                <li class="detail">房产</li>
+                <li class="detail" style="width: 36px">二手房</li>
+                <li class="detail">家具</li>
+                <li class="detail">收藏</li>
+            </ul>
+        </div>
+        <div class="class-block">
+            <ul>
+                <li class="detail">时尚</li>
+                <li class="detail">女性</li>
+                <li class="detail">健康</li>
+                <li class="detail">育儿</li>
+            </ul>
+            <ul>
+                <li class="detail">教育</li>
+                <li class="detail">出国</li>
+                <li class="detail">公益</li>
+                <li class="detail">佛学</li>
+            </ul>
+            <ul>
+                <li class="detail">图片</li>
+                <li class="detail">读书</li>
+                <li class="detail">情感</li>
+                <li class="detail">法院</li>
+            </ul>
+        </div>
+        <div class="class-block">
+            <ul>
+                <li class="detail">城市</li>
+                <li class="detail">鲜城</li>
+                <li class="detail">浙江</li>
+                <li class="detail" style="width: 36px">English</li>
+            </ul>
+            <ul>
+                <li class="detail">旅游</li>
+                <li class="detail">航空</li>
+                <li class="detail">彩票</li>
+                <li class="detail" style="width: 36px">高尔夫</li>
+            </ul>
+            <ul>
+                <li class="detail">游戏</li>
+                <li class="detail">页游</li>
+                <li class="detail">手游</li>
+                <li class="detail" style="width: 36px">SHOW</li>
+            </ul>
+        </div>
+        <div class="class-block">
+            <ul>
+                <li class="detail">微博</li>
+            </ul>
+            <ul>
+                <li class="detail">邮箱</li>
+            </ul>
+            <ul>
+                <li class="detail">更多</li>
+            </ul>
+        </div>
+    </div>
+
+    <!--主体部分,中右的css都是可以复用的-->
+    <div class="main-content">
+        <div class="left-content">
+            广告忽略
+        </div>
+        <div class="middle-content">
+            <div class="msg-block">
+                <ul class="title-box">
+                    <li class="title active"><a>图片</a></li>
+                    <li class="title"><a>专栏</a></li>
+                    <li class="title"><a>热点</a></li>
+                </ul>
+                <ul class="content-box">
+                    <li class="content active">
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>安徽“山寨”兵马俑门票120元</a>
+                            <a>特朗普女儿抱娃晒照</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>20年闺蜜帮自己代孕全程</a>
+                            <a>拍照吧少年征稿最后4天</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>另一半会拍照是怎样的奇妙体验？</a>
+                            <a>东北虎胖成气球</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>网红超模吉吉运动大片</a>
+                            <a>初春必买杨幂刘雯中长大衣</a>
+                        </div>
+                    </li>
+                    <li class="content">省略1</li>
+                    <li class="content">省略2</li>
+                </ul>
+            </div>
+            <div class="msg-block">
+                <ul class="title-box">
+                    <li class="title"><a>视频</a></li>
+                    <li class="title active"><a>秒拍</a></li>
+                    <li class="title"><a>综艺</a></li>
+                </ul>
+                <ul class="content-box">
+                    <li class="content">省略3</li>
+                    <li class="content active">
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>曝热巴将顶替Baby加盟跑男5</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>吴亦凡突袭电影院代发3D眼镜</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>景甜直播情歌串烧 肤白还卖萌</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>没分手？叶璇与男友牵手摸臀</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>甜！高圆圆赵又廷罕见秀恩爱</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>千万别让歪果仁沉迷中国KTV</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>高逼格招数把照片印在木板上</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>美女厨娘送上冬季梅花鸽子汤</a>
+                        </div>
+                    </li>
+                    <li class="content">省略4</li>
+                </ul>
+            </div>
+        </div>
+        <div class="right-content">
+            <div class="msg-block">
+                <ul class="title-box">
+                    <li class="title active"><a>新闻</a></li>
+                    <li class="title"><a>看浙江</a></li>
+                </ul>
+                <ul class="content-box">
+                    <li class="content active">
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>杭州发布2017年治堵关键词</a>
+                            <a>开通三段地铁里程达117公里</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>杭城下周气温将到18℃(图)</a>
+                            <a>西湖风景旅游局原局长受贿</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>2016城市爱情报告发布：杭州男人浪漫度排不上号(组图)</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>网曝宁波飞机撒药勿晒被子 林业部：浙江未现美国白蛾</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>杭城农村回迁房惊呆网友(图)</a>
+                            <a>西湖边现5亿天价别墅(图)</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>宁波念恩大妈事迹感动全国</a>
+                            <a>陈召华当选北仑区政协主席</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>宁波博物馆被质疑中式英语</a>
+                            <a>市民1个鸡蛋打出3个蛋黄</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>杭州1女子花两万六美容 老公一句话让她崩溃(组图)</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>浙江乌镇景区门票8月将涨价 东栅100元/人西栅150元/人</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>甬1市民捕野生中华鲟(图)</a>
+                            <a>绍兴突发大火7民房被烧(图)</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>围观！2017嘉兴第一场雪(组图)</a>
+                            <a>中国美院开考考哭学生</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>揭秘2022年亚运会主会场</a>
+                            <a>有80800个座位全国第三大(图)</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>杭杭滑小品春晚归来下乡(图)</a>
+                            <a>小伙约网友打工被困传销点</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>浙男子6信鸽被盗价值40万(图)</a>
+                            <a>甬一家人凌晨被赶出酒店</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>杭州养5年罗威纳犬猛咬主人</a>
+                            <a>头皮伤最终部分颅骨外露</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>衢州九岁女孩反复呕吐发热 原来是因为脑子里长了肿瘤</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>曝绍兴三城管打一老人(图)</a>
+                            <a>浙男子醒来左手神经受损</a>
+                        </div>
+                        <div class="line">
+                            <i class="iconfont icon-weibiaoti1"></i>
+                            <a>浙江1民警穿睡衣抓惯犯</a>
+                            <a>杭州小伙过年7天相亲10来次</a>
+                        </div>
+                    </li>
+                    <li class="content">省略5</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+.classification {
+    height: 90px;
+}
+
+.classification .class-block {
+    float: left;
+    padding: 2px 10px 0 2px;
+    margin: 2px 0 18px;
+    border-right: 1px solid #ddd;
+    font-size: 12px;
+}
+
+.classification .class-block:last-child {
+    border-right: hidden;
+}
+
+
+.classification .class-block ul {
+    height: 26px;
+}
+
+.classification .class-block .detail {
+    float: left;
+    margin-left: 13px;
+    width: 27px;
+    line-height: 26px;
+    cursor: pointer;
+}
+
+.classification .class-block .detail:nth-child(4n+1){
+    font-weight: bold;
+}

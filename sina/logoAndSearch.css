@@ -1,0 +1,50 @@
+.logo-and-search {
+    padding-top: 50px;
+    height: 58px;
+    line-height: 58px;
+}
+
+.logo-and-search .logo{
+    width: 111px;
+    background-image: url("logo/sina.jpg");
+    display: inline-block;
+    background-size: 100% 100%;
+}
+
+.logo-and-search .search-bar {
+    display: inline-block;
+    font-size: 0;
+}
+
+.logo-and-search .search-bar .search-choice {
+    height: 35px;
+    width: 75px;
+    border: 1px solid #c1c1c1;
+}
+
+.logo-and-search .search-bar .search-content {
+    height: 31px;
+    width: 259px;
+    border: 1px solid #c1c1c1;
+}
+
+.logo-and-search .search-bar .search {
+    width: 54px;
+    height: 35px;
+    background-color: #ff8400;
+    display: inline-block;
+    line-height: 35px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.logo-and-search .search-bar .search i {
+    color: #ffffff;
+}
+
+.logo-and-search .search-bar .weather {
+    font-size: 14px;
+    font-family: "SimSun","宋体","Arial Narrow",HELVETICA;
+    color: #7a7874;
+    padding-left: 15px;
+}

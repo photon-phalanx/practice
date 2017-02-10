@@ -1,0 +1,91 @@
+a:hover {
+    color: #ff8400;
+    cursor: pointer;
+}
+
+.box {
+    width: 1000px;
+    margin: 0 auto;
+}
+
+.top-nav {
+    position: fixed;
+    height: 41px;
+    left: 0;
+    right: 0;
+    background-color: #fcfcfc;
+    border-bottom: 1px solid #edeef0;
+    border-top: 3px solid #ff8500;
+    min-width: 1000px;
+}
+
+.nav-box {
+    width: 1000px;
+    font-size: 12px;
+    margin: auto;
+}
+
+.top-nav .left-nav {
+    float: left;
+}
+
+.top-nav .right-nav {
+    float: right;
+}
+
+.top-nav .detail {
+    float: left;
+    color: #4c4c4c;
+    cursor: pointer;
+    padding: 12px 12px 12px 17px;
+    line-height: 16px;
+    height: 17px;
+}
+
+.top-nav .detail *{
+    vertical-align: middle;
+}
+
+.top-nav .detail i{
+    color: #ff8400;
+    padding-left: 3px;
+    display: inline-block;
+    margin-top: -3px;
+}
+
+.top-nav .detail:hover {
+    color: #ff8400;
+    background-color: #edeef0;
+}
+
+.relative {
+    position: relative;
+}
+
+.top-nav .detail.relative:hover .dropdown {
+    display: block;
+}
+
+.top-nav .detail .dropdown {
+    display: none;
+    position: absolute;
+    top: 41px;
+    left: 0;
+    width: 120px;
+    background-color: #ffffff;
+}
+
+.top-nav .detail .dropdown .dropdown-detail {
+    border: 1px solid #fecc5b;
+    border-top: none;
+    padding: 0 15px;
+    font-size: 12px;
+    line-height: 31px;
+    height: 31px;
+    color: #4c4c4c;
+}
+
+.top-nav .detail .dropdown .dropdown-detail:hover {
+    background-color: #fff5da;
+    color: #e67902;
+}
